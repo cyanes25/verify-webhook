@@ -20,22 +20,24 @@ const body = {
 const base64Signature =
   'MEUCIQDGfcNEZtfiq5CHxWmogr3t0pIE9VH5w9yWZa8ihZ8BxAIgPy9U3uyeIOTs5s88nSpOmXVhtM+yCB96D0vpAnO1+Dg=';
 
-console.log({base64Signature});
 const bodyBytes = Buffer.from(JSON.stringify(body));
-console.log({bodyByes: bodyBytes.toString('base64')});
 const signature = Buffer.from(base64Signature, 'base64');
-console.log({signature: signature.toString('base64')});
 const hashedBody = crypto.createHash('sha256').update(bodyBytes).digest();
-console.log({hashedBody: hashedBody.toString('base64')});
 
 const pubKey =
   '-----BEGIN PUBLIC KEY-----\n' +
   'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY415QEIfaru/7bzRIdeuHDL6eIWE\n' +
   '8dUXq1MBygBWFPVYs/8DrNFBpv6ULXfncVvm+waodlSnAXIzDOlM6hI3Tg==\n' +
-  '-----END PUBLIC KEY-----'; // gotten from here: https://brla-account-api.readme.io/reference/pubkey
-console.log({pubKey});
+  '-----END PUBLIC KEY-----';
 
-const verify = crypto.createVerify('sha256');
-verify.update(hashedBody);
+const verify = crypto.createVerify('SHA256');
+verify.update(bodyBytes); // Notice that the bodyBytes is passed here, not the hashed body
+verify.end();
 
-if (!verify.verify(pubKey, signature)) throw new Error('Verification Failed!');
+const isVerified = verify.verify(pubKey, signature);
+
+if (!isVerified) {
+  console.error('Verification Failed!');
+} else {
+  console.log('Signature verified successfully!');
+}
